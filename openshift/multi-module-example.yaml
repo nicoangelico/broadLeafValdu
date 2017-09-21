@@ -291,9 +291,9 @@ objects:
   spec:
     ports:
     - name: 8080-tcp
-      port: 8080
+      port: 8081
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8081
     - name: 8778-tcp
       port: 8778
       protocol: TCP
