@@ -290,7 +290,7 @@ objects:
     name: valduezacompeticionadmin
   spec:
     ports:
-    - name: 8080-tcp
+    - name: 8081-tcp
       port: 8081
       protocol: TCP
       targetPort: 8081
