@@ -7,7 +7,7 @@ metadata:
 parameters:
 - description: Git Source Repository
   name: SOURCE_REPOSITORY
-  value: https://github.com/benemon/multi-module-s2i-project
+  value: https://github.com/nicoangelico/broadLeafValdu
   required: true
 - description: Git Source reference
   name: SOURCE_REF
@@ -16,24 +16,24 @@ parameters:
 - description: Country Service data directory
   name: DATA_DIRECTORY
   value: /deployments/data
-  required: true
+  required: false
   
 objects:
-- apiVersion: v1
+  - apiVersion: v1
   kind: BuildConfig
   metadata:
     annotations:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-service
+      app: valduezacompeticionadmin
       delete: blog
-    name: country-service
+    name: valduezacompeticionadmin
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: country-service:latest
+        name: valduezacompeticionadmin:latest
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -46,14 +46,14 @@ objects:
       sourceStrategy:
         env:
         - name: MAVEN_ARGS_APPEND
-          value: -pl fis --also-make
+          value: -pl admin --also-make
         - name: ARTIFACT_DIR
-          value: fis/target/
+          value: admin/target/
         - name: MODULE_DIR
-          value: fis
+          value: admin
         from:
           kind: ImageStreamTag
-          name: fis-java-openshift:latest
+          name: jboss-eap70-openshift:latest
           namespace: openshift
       type: Source
     triggers:
@@ -61,22 +61,22 @@ objects:
       type: ImageChange
     - type: ConfigChange
   status: {}
-    
-- apiVersion: v1
+  
+  - apiVersion: v1
   kind: BuildConfig
   metadata:
     annotations:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-web
+      app: valduezacompeticionsite
       delete: blog
-    name: country-web
+    name: valduezacompeticionsite
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: country-web:latest
+        name: valduezacompeticioncore:latest
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -89,9 +89,11 @@ objects:
       sourceStrategy:
         env:
         - name: MAVEN_ARGS_APPEND
-          value: -pl web --also-make
+          value: -pl site --also-make
         - name: ARTIFACT_DIR
-          value: web/target/
+          value: site/target/
+         - name: MODULE_DIR
+          value: site
         from:
           kind: ImageStreamTag
           name: jboss-eap70-openshift:latest
@@ -110,13 +112,13 @@ objects:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-service
+      app: valduezacompeticionadmin
       delete: blog
-    name: country-service
+    name: valduezacompeticionadmin
   spec:
     replicas: 1
     selector:
-      deploymentconfig: country-service
+      deploymentconfig: valduezacompeticionadmin
     strategy:
       resources: {}
       rollingParams:
@@ -130,17 +132,17 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
-          app: country-service
+          app: valduezacompeticionadmin
           delete: blog
-          deploymentconfig: country-service
+          deploymentconfig: valduezacompeticionadmin
       spec:
         containers:
         - env:
           - name: DATA_DIRECTORY
             value: ${DATA_DIRECTORY}
-          image: country-service
+          image: valduezacompeticionadmin
           imagePullPolicy: Always
-          name: country-service
+          name: valduezacompeticionadmin
           ports:
           - containerPort: 8778
             name: jolokia
@@ -165,10 +167,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - country-service
+        - valduezacompeticionadmin
         from:
           kind: ImageStreamTag
-          name: country-service:latest
+          name: valduezacompeticionadmin:latest
       type: ImageChange
     - type: ConfigChange
   status: {}
@@ -180,13 +182,13 @@ objects:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-web
+      app: valduezacompeticionsite
       delete: blog
-    name: country-web
+    name: valduezacompeticionsite
   spec:
     replicas: 1
     selector:
-      deploymentconfig: country-web
+      deploymentconfig: valduezacompeticionsite
     strategy:
       resources: {}
       rollingParams:
@@ -200,12 +202,12 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
-          app: country-web
+          app: valduezacompeticionsite
           delete: blog
-          deploymentconfig: country-web
+          deploymentconfig: valduezacompeticionsite
       spec:
         containers:
-        - image: country-web:latest
+        - image: valduezacompeticionsite:latest
           imagePullPolicy: Always
           name: country-web
           ports:
@@ -226,10 +228,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - country-web
+        - valduezacompeticionsite
         from:
           kind: ImageStreamTag
-          name: country-web:latest
+          name: valduezacompeticionsite:latest
       type: ImageChange
     - type: ConfigChange
   status: {}
@@ -241,15 +243,15 @@ objects:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-service
+      app: valduezacompeticionsite
       delete: blog
-    name: country-service
+    name: valduezacompeticionsite
   spec:
     tags:
     - annotations: null
       from:
         kind: DockerImage
-        name: country-service:latest
+        name: valduezacompeticionsite:latest
       generation: null
       importPolicy: {}
       name: latest
@@ -262,15 +264,15 @@ objects:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-web
+      app: valduezacompeticionadmin
       delete: blog
-    name: country-web
+    name: valduezacompeticionadmin
   spec:
     tags:
     - annotations: null
       from:
         kind: DockerImage
-        name: country-web:latest
+        name: valduezacompeticionadmin:latest
       generation: null
       importPolicy: {}
       name: latest
@@ -283,9 +285,9 @@ objects:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-service
+      app: valduezacompeticionadmin
       delete: blog
-    name: country-service
+    name: valduezacompeticionadmin
   spec:
     ports:
     - name: 8080-tcp
@@ -297,7 +299,7 @@ objects:
       protocol: TCP
       targetPort: 8778
     selector:
-      deploymentconfig: country-service
+      deploymentconfig: valduezacompeticionadmin
     sessionAffinity: None
     type: ClusterIP
   status:
@@ -310,9 +312,9 @@ objects:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     labels:
-      app: country-web
+      app: valduezacompeticionsite
       delete: blog
-    name: country-web
+    name: valduezacompeticionsite
   spec:
     ports:
     - name: 8080-tcp
@@ -328,7 +330,7 @@ objects:
       protocol: TCP
       targetPort: 8778
     selector:
-      deploymentconfig: country-web
+      deploymentconfig: valduezacompeticionsite
     sessionAffinity: None
     type: ClusterIP
   status:
@@ -339,13 +341,13 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: country-service
+      app: valduezacompeticionadmin
       delete: blog
-    name: country-service
+    name: valduezacompeticionadmin
   spec:
     to:
       kind: Service
-      name: country-service
+      name: valduezacompeticionadmin
     port:
       targetPort: 8080-tcp
   status: {}
@@ -354,13 +356,13 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
-      app: country-web
+      app: valduezacompeticionsite
       delete: blog
-    name: country-web
+    name: valduezacompeticionsite
   spec:
     to:
       kind: Service
-      name: country-web
+      name: valduezacompeticionsite
     port:
       targetPort: 8080-tcp
   status: {}
