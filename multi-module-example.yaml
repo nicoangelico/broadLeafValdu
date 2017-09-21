@@ -1,0 +1,368 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: multi-module-example
+  
+parameters:
+- description: Git Source Repository
+  name: SOURCE_REPOSITORY
+  value: https://github.com/nicoangelico/broadLeafValdu
+  required: true
+- description: Git Source reference
+  name: SOURCE_REF
+  value: b1.0
+  required: true
+- description: Country Service data directory
+  name: DATA_DIRECTORY
+  value: /deployments/data
+  required: false
+  
+objects:
+  - apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionadmin
+      delete: blog
+    name: valduezacompeticionadmin
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: valduezacompeticionadmin:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        ref: ${SOURCE_REF}
+        uri: ${SOURCE_REPOSITORY}
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_ARGS_APPEND
+          value: -pl admin --also-make
+        - name: ARTIFACT_DIR
+          value: admin/target/
+        - name: MODULE_DIR
+          value: admin
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap70-openshift:latest
+          namespace: openshift
+      type: Source
+    triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
+  
+  - apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionsite
+      delete: blog
+    name: valduezacompeticionsite
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: valduezacompeticioncore:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        ref: ${SOURCE_REF}
+        uri: ${SOURCE_REPOSITORY}
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_ARGS_APPEND
+          value: -pl site --also-make
+        - name: ARTIFACT_DIR
+          value: site/target/
+         - name: MODULE_DIR
+          value: site
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap70-openshift:latest
+          namespace: openshift
+      type: Source
+    triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
+  
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionadmin
+      delete: blog
+    name: valduezacompeticionadmin
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: valduezacompeticionadmin
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: valduezacompeticionadmin
+          delete: blog
+          deploymentconfig: valduezacompeticionadmin
+      spec:
+        containers:
+        - env:
+          - name: DATA_DIRECTORY
+            value: ${DATA_DIRECTORY}
+          image: valduezacompeticionadmin
+          imagePullPolicy: Always
+          name: valduezacompeticionadmin
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 384Mi
+            requests:
+              cpu: 250m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - valduezacompeticionadmin
+        from:
+          kind: ImageStreamTag
+          name: valduezacompeticionadmin:latest
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
+  
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionsite
+      delete: blog
+    name: valduezacompeticionsite
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: valduezacompeticionsite
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: valduezacompeticionsite
+          delete: blog
+          deploymentconfig: valduezacompeticionsite
+      spec:
+        containers:
+        - image: valduezacompeticionsite:latest
+          imagePullPolicy: Always
+          name: country-web
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - valduezacompeticionsite
+        from:
+          kind: ImageStreamTag
+          name: valduezacompeticionsite:latest
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
+  
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionsite
+      delete: blog
+    name: valduezacompeticionsite
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: valduezacompeticionsite:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status: {}
+    
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionadmin
+      delete: blog
+    name: valduezacompeticionadmin
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: valduezacompeticionadmin:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status: {}
+    
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionadmin
+      delete: blog
+    name: valduezacompeticionadmin
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8778-tcp
+      port: 8778
+      protocol: TCP
+      targetPort: 8778
+    selector:
+      deploymentconfig: valduezacompeticionadmin
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+    
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionsite
+      delete: blog
+    name: valduezacompeticionsite
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    - name: 8778-tcp
+      port: 8778
+      protocol: TCP
+      targetPort: 8778
+    selector:
+      deploymentconfig: valduezacompeticionsite
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+    
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionadmin
+      delete: blog
+    name: valduezacompeticionadmin
+  spec:
+    to:
+      kind: Service
+      name: valduezacompeticionadmin
+    port:
+      targetPort: 8080-tcp
+  status: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: valduezacompeticionsite
+      delete: blog
+    name: valduezacompeticionsite
+  spec:
+    to:
+      kind: Service
+      name: valduezacompeticionsite
+    port:
+      targetPort: 8080-tcp
+  status: {}
