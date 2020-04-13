@@ -1,5 +1,7 @@
 # CommunityStarter
 
+Modificando para la prueba gg
+
 This Maven project is a Spring boot implementation of a community [Broadleaf Commerce](http://www.broadleafcommerce.org) application. It has many sensible defaults set up along with examples of how a fully functioning eCommerce site based on Broadleaf might work.
 
 ## Project Overview
